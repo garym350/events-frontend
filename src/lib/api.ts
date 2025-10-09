@@ -1,10 +1,10 @@
 // src/lib/api.ts
 
 // Base URL for your backend API (e.g., http://localhost:10000)
-// Make sure .env.local contains: NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
+
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
 if (!BASE) {
-  // Helpful during dev if env is missing
+  
   throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in frontend env (.env.local)");
 }
 

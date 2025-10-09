@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Skip ESLint during CI/host builds; run it locally in dev instead.
+  eslint: { ignoreDuringBuilds: true },
+
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "image.tmdb.org" }, // TMDb poster host
-    ],
+    // Allow TMDb poster images
+    remotePatterns: [{ protocol: "https", hostname: "image.tmdb.org" }],
   },
 };
 

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Event detail", () => {
   test("renders details and signup form", async ({ page }) => {
-    await page.goto("/");  // fixed
+    await page.goto("/"); 
 
     await page.locator("a[href^='/events/']").first().click();
 
