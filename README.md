@@ -1,58 +1,76 @@
-# Events Platform
+# FilmHub Online – Frontend
 
-A simple events website for creating and sharing community events. Admins can create events; visitors can browse and view details. Optional TMDb integration provides poster artwork for film-themed events.
+FilmHub Online is a web application for browsing and creating film-related events. 
+It connects to a companion backend API hosted on Render.
 
-## Live URLs
-- Frontend: https://<your-netlify-site>.netlify.app  
-- Backend API: https://<your-render-backend>.onrender.com
+## Live Links
 
-## Features
-- Events list and detail pages  
-- Admin event creation (passcode protected)  
-- Add-to-calendar link generation  
-- Responsive UI with Tailwind CSS  
-- Optional TMDb poster images  
+Frontend (Netlify): https://filmhubonline.netlify.app  
+Backend (Render): https://events-backend-0oer.onrender.com
 
-## Tech
-- Next.js + TypeScript + Tailwind  
-- Express + Firestore (API)  
-- Netlify (frontend), Render (backend)  
-- Playwright for E2E tests  
+## Tech Stack
 
-## Quick Start (local)
+- Next.js 14 (React)
+- Tailwind CSS
+- TypeScript
+- Firebase Firestore (via backend API)
+- Express backend
+- TMDb API for movie poster data
+
+## Environment Variables
+
+Create a `.env.local` file in the root directory:
 
 ```bash
-# 1) install
+NEXT_PUBLIC_API_BASE_URL=https://events-backend-0oer.onrender.com
+```
+
+## Key Features
+
+- View a list of upcoming film events
+- View detailed information for each event
+- Create new events through a passcode-protected admin form
+- Responsive and accessible design using Tailwind CSS
+- Movie poster lookups through TMDb API
+
+## Development
+
+```bash
 npm install
-
-# 2) set env
-echo 'NEXT_PUBLIC_API_BASE_URL=http://localhost:10000' > .env.local
-
-# 3) run dev
 npm run dev
 ```
+Then visit http://localhost:3000
 
-## Environment
-- `NEXT_PUBLIC_API_BASE_URL` → your backend base URL (no trailing slash)  
-- *(Optional)* `NEXT_PUBLIC_TMDB_API_KEY` → enables poster images  
-
-## Scripts
-- `npm run dev` → start Next.js dev server  
-- `npm run build` → build for production  
-- `npm run start` → run production server  
-- `npm run lint` → run ESLint  
-- `npm run test:e2e` → run Playwright tests (local)  
-
-## Testing (Playwright)
+For production:
 
 ```bash
-npx playwright install --with-deps
-npm run test:e2e
+npm run build
+npm start
 ```
 
-## Deployment
-- **Netlify** → set `NEXT_PUBLIC_API_BASE_URL` in Site Settings → Build & Deploy → Environment.  
-- Build command: `npm run build` (Netlify detects Next.js automatically).  
+## Admin Access
 
-## License
-MIT
+To create new events:
+
+1. Go to https://filmhubonline.netlify.app/admin  
+2. Enter the passcode below  
+3. Fill in and submit the event form
+
+Admin passcode: launchpad2025!
+
+## Notes for Assessors
+
+- Frontend repository: https://github.com/garymorris350/events-frontend  
+- Backend repository: https://github.com/garymorris350/events-backend  
+- Admin passcode: launchpad2025!  
+- Invoice ID: INV-20251009-001  
+- PO Number: 1842  
+- Submission date: 9 October 2025
+
+## Accessibility
+
+- Uses semantic HTML5 structure
+- Tested with Lighthouse for color contrast
+- Fully keyboard accessible
+
+© 2025 Gary Morris – Project submitted to Northcoders Launchpad
