@@ -1,4 +1,4 @@
-# FilmHub Online – Frontend
+# FilmHub Online - Frontend
 
 FilmHub Online is a web application for browsing and creating film-related events. 
 It connects to a companion backend API hosted on Render.
@@ -19,27 +19,32 @@ Backend (Render): https://events-backend-0oer.onrender.com
 
 ## Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create a `.env.local` file in the frontend root:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://events-backend-0oer.onrender.com
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
+
+The frontend only needs `NEXT_PUBLIC_API_BASE_URL`. Admin passcodes, password hashes, Firebase credentials, TMDb keys, and session secrets must stay on the backend.
 
 ## Key Features
 
 - View a list of upcoming film events
 - View detailed information for each event
-- Create new events through a passcode-protected admin form
+- Create, edit, and delete events through an admin login flow
 - Responsive and accessible design using Tailwind CSS
 - Movie poster lookups through TMDb API
 
 ## Development
 
+Install dependencies and start the frontend:
+
 ```bash
 npm install
 npm run dev
 ```
-Then visit http://localhost:3000
+
+Then visit http://localhost:3000. In a second terminal, start the backend API from the backend package root.
 
 For production:
 
@@ -50,19 +55,14 @@ npm start
 
 ## Admin Access
 
-To create new events:
+Admin users log in at `/admin/login`. The frontend sends the passcode once to the backend login endpoint and stores the returned admin session token in the browser for subsequent admin create, edit, and delete requests.
 
-1. Go to https://filmhubonline.netlify.app/admin  
-2. Enter the passcode below  
-3. Fill in and submit the event form
-
-Admin passcode: launchpad2025!
+The frontend does not know or store the backend passcode hash or session secret. Configure these only on the backend with `ADMIN_PASSCODE_HASH` and `ADMIN_SESSION_SECRET`.
 
 ## Notes for Assessors
 
 - Frontend repository: https://github.com/garymorris350/events-frontend  
 - Backend repository: https://github.com/garymorris350/events-backend  
-- Admin passcode: launchpad2025!  
 - Invoice ID: INV-20251009-001  
 - PO Number: 1842  
 - Submission date: 9 October 2025

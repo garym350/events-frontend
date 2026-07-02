@@ -15,10 +15,16 @@ export default function Header() {
         />
         
       </Link>
-      <nav className="space-x-4">
-        <Link href="/events">Events</Link>
-        <Link href="/products">Products</Link>
-        <Link href="/my-events">My Events</Link>
+      <nav className="flex items-center gap-4 text-sm font-medium" aria-label="Primary navigation">
+        <Link href="/" className="hover:underline">
+          Events
+        </Link>
+        <Link href="/products" className="hover:underline">
+          Products
+        </Link>
+        <Link href="/my-events" className="hover:underline">
+          My Events
+        </Link>
       </nav>
     </header>
   );

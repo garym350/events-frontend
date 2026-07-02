@@ -1,10 +1,10 @@
 // src/lib/api.ts
+import { getAdminToken } from "./adminSession";
 
 // Base URL for your backend API (e.g., http://localhost:10000)
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL!;
 if (!BASE) {
-  
   throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in frontend env (.env.local)");
 }
 
@@ -12,7 +12,7 @@ if (!BASE) {
    Shared types
    ========================= */
 
-export type PriceType = "free" | "fixed" | "donation";
+export type PriceType = "free" | "fixed" | "pay_what_you_feel";
 
 export type Event = {
   id: string;
@@ -53,12 +53,82 @@ export type CreateEventInput = {
   isPaid?: boolean;
 };
 
+export type UpdateEventInput = CreateEventInput;
+
 export type SignupInput = {
   eventId: string;
   name: string;
   email: string;
   amountPence?: number;
 };
+
+export type AdminLoginResponse = {
+  token: string;
+  expiresAt: string;
+};
+
+function extractErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error && "error" in error) {
+    const value = (error as { error?: unknown }).error;
+    return typeof value === "string" ? value : JSON.stringify(value);
+  }
+  return fallback;
+}
+
+async function readApiError(response: Response, fallback: string) {
+  try {
+    return extractErrorMessage(await response.json(), fallback);
+  } catch {
+    return fallback;
+  }
+}
+
+function requireAdminToken() {
+  const token = getAdminToken();
+  if (!token) {
+    throw new Error("Please log in as an admin to continue.");
+  }
+  return token;
+}
+
+function adminJsonHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${requireAdminToken()}`,
+  };
+}
+
+function adminHeaders() {
+  return {
+    Authorization: `Bearer ${requireAdminToken()}`,
+  };
+}
+
+/* =========================
+   Admin session
+   ========================= */
+
+export async function loginAdmin(passcode: string): Promise<AdminLoginResponse> {
+  const r = await fetch(`${BASE}/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ passcode }),
+  });
+
+  if (!r.ok) {
+    throw new Error(await readApiError(r, "Admin login failed"));
+  }
+
+  return (await r.json()) as AdminLoginResponse;
+}
+
+export async function logoutAdmin(): Promise<void> {
+  try {
+    await fetch(`${BASE}/admin/logout`, { method: "POST" });
+  } catch {
+    // Logout is stateless server-side; local session clearing happens in the UI.
+  }
+}
 
 /* =========================
    Events
@@ -77,32 +147,28 @@ export async function getEvent(id: string): Promise<Event> {
   return (await r.json()) as Event;
 }
 
-export async function createEvent(
-  payload: CreateEventInput,
-  adminPass: string
-): Promise<Event> {
-  if (!adminPass || !adminPass.trim()) {
-    throw new Error("Missing admin passcode (frontend)");
-  }
-
+export async function createEvent(payload: CreateEventInput): Promise<Event> {
   const r = await fetch(`${BASE}/events`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-admin-passcode": adminPass.trim(),
-    },
+    headers: adminJsonHeaders(),
     body: JSON.stringify(payload),
   });
 
   if (!r.ok) {
-    let message = "Create event failed";
-    try {
-      const e = await r.json();
-      if (e?.error)
-        message =
-          typeof e.error === "string" ? e.error : JSON.stringify(e.error);
-    } catch {}
-    throw new Error(message);
+    throw new Error(await readApiError(r, "Create event failed"));
+  }
+  return (await r.json()) as Event;
+}
+
+export async function updateEvent(id: string, payload: UpdateEventInput): Promise<Event> {
+  const r = await fetch(`${BASE}/events/${id}`, {
+    method: "PUT",
+    headers: adminJsonHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!r.ok) {
+    throw new Error(await readApiError(r, "Update event failed"));
   }
   return (await r.json()) as Event;
 }
@@ -118,12 +184,7 @@ export async function createSignup(payload: SignupInput) {
     body: JSON.stringify(payload),
   });
   if (!r.ok) {
-    let message = "Signup failed";
-    try {
-      const e = await r.json();
-      if (e?.error) message = typeof e.error === "string" ? e.error : JSON.stringify(e.error);
-    } catch {}
-    throw new Error(message);
+    throw new Error(await readApiError(r, "Signup failed"));
   }
   return r.json();
 }
@@ -135,12 +196,7 @@ export async function startCheckout(eventTitle: string, amountPence: number): Pr
     body: JSON.stringify({ eventTitle, amountPence }),
   });
   if (!r.ok) {
-    let message = "Checkout failed";
-    try {
-      const e = await r.json();
-      if (e?.error) message = typeof e.error === "string" ? e.error : JSON.stringify(e.error);
-    } catch {}
-    throw new Error(message);
+    throw new Error(await readApiError(r, "Checkout failed"));
   }
   return r.json() as Promise<{ url: string }>;
 }
@@ -219,22 +275,12 @@ export async function getMovieBasics(movieId: string): Promise<MovieBasics | nul
    Delete event
    ========================= */
 
-export async function deleteEvent(id: string, adminPass: string): Promise<void> {
-  if (!adminPass || !adminPass.trim()) {
-    throw new Error("Missing admin passcode (frontend)");
-  }
+export async function deleteEvent(id: string): Promise<void> {
   const r = await fetch(`${BASE}/events/${id}`, {
     method: "DELETE",
-    headers: { "x-admin-passcode": adminPass.trim() },
+    headers: adminHeaders(),
   });
   if (!r.ok) {
-    let message = "Delete event failed";
-    try {
-      const e = await r.json();
-      if (e?.error) message = typeof e.error === "string" ? e.error : JSON.stringify(e.error);
-    } catch {}
-    throw new Error(message);
+    throw new Error(await readApiError(r, "Delete event failed"));
   }
 }
-
-

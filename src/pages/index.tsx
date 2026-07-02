@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
-import { listEvents, type Event, deleteEvent } from "@/lib/api";
+import { listEvents, type Event } from "@/lib/api";
 import { formatDateTimeShort } from "@/lib/dates";
 import MoviePreview from "@/components/MoviePreview";
 
@@ -11,7 +11,6 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,28 +37,6 @@ export default function EventsPage() {
     };
   }, []);
 
-  async function handleDelete(id: string, title: string) {
-    // 1) Confirm intent
-    const ok = window.confirm(`Delete event "${title}"? This cannot be undone.`);
-    if (!ok) return;
-
-    // 2) Prompt for admin passcode
-    const adminPass = window.prompt("Enter admin passcode to delete:");
-    if (!adminPass || !adminPass.trim()) return;
-
-    try {
-      setDeletingId(id);
-      await deleteEvent(id, adminPass);
-      // 3) Optimistically remove from UI
-      setEvents((prev) => prev.filter((e) => e.id !== id));
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Delete failed";
-      alert(message);
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
   return (
     <>
       <Head>
@@ -80,9 +57,26 @@ export default function EventsPage() {
           </h1>
 
           {loading ? (
-            <p className="text-center" role="status">
-              Loading…
-            </p>
+            <section
+              className="rounded-lg border border-purple-100 bg-white p-6 shadow-sm"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div className="mb-4 flex items-center justify-center gap-3 text-purple-800">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" aria-hidden="true" />
+                <span className="font-medium">Loading upcoming events…</span>
+              </div>
+              <div className="space-y-4" aria-hidden="true">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="animate-pulse rounded-lg border bg-gray-50 p-5">
+                    <div className="mb-3 h-5 w-2/3 rounded bg-gray-200" />
+                    <div className="mb-4 h-4 w-1/2 rounded bg-gray-200" />
+                    <div className="h-4 w-28 rounded bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            </section>
           ) : error ? (
             <p className="text-center text-red-700">Error: {error}</p>
           ) : events.length > 0 ? (
@@ -113,21 +107,6 @@ export default function EventsPage() {
                         >
                           View details →
                         </Link>
-
-                        {/* Admin delete button */}
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(event.id, event.title)}
-                          disabled={deletingId === event.id}
-                          className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition
-                            ${deletingId === event.id
-                              ? "bg-red-300 text-white cursor-not-allowed"
-                              : "bg-red-600 text-white hover:bg-red-700"
-                            }`}
-                          aria-label={`Delete event ${event.title}`}
-                        >
-                          {deletingId === event.id ? "Deleting…" : "Delete"}
-                        </button>
                       </div>
                     </div>
 
@@ -149,11 +128,11 @@ export default function EventsPage() {
 
           <div className="mt-10 text-center">
             <Link
-              href="/admin"
+              href="/admin/events"
               className="text-sm text-gray-600 hover:text-gray-800 hover:underline"
-              aria-label="Go to admin page to create an event"
+              aria-label="Go to admin event management page"
             >
-              Admin: Create Event
+              Admin: Manage Events
             </Link>
           </div>
         </div>

@@ -57,7 +57,22 @@ export default function EventDetailPage() {
   }, [event?.movieId]);
 
   if (notFound) return <Custom404 />;
-  if (!event) return <main className="max-w-xl mx-auto p-6">Loading…</main>;
+  if (!event) {
+    return (
+      <main className="mx-auto max-w-xl p-6">
+        <section
+          className="rounded-lg border bg-white p-8 text-center shadow-sm"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-purple-100 border-t-purple-700" aria-hidden="true" />
+          <p className="font-medium text-gray-800">Loading event details…</p>
+          <p className="mt-1 text-sm text-gray-500">Preparing the event page.</p>
+        </section>
+      </main>
+    );
+  }
 
   const e = event!;
 
