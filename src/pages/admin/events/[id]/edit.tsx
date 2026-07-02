@@ -14,6 +14,7 @@ import {
   type UpdateEventInput,
 } from "@/lib/api";
 import { clearAdminSession, getAdminSession } from "@/lib/adminSession";
+import GbDateTimeInput from "@/components/GbDateTimeInput";
 import { formatDateTimeShort } from "@/lib/dates";
 
 type FormState = {
@@ -43,22 +44,6 @@ function toIsoFromLocal(value: string) {
 }
 
 const MAX_EVENT_YEARS_AHEAD = 5;
-
-function toLocalDateTimeInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function getEventDateBounds() {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  const max = new Date(now);
-  max.setFullYear(max.getFullYear() + MAX_EVENT_YEARS_AHEAD);
-  return {
-    min: toLocalDateTimeInputValue(now),
-    max: toLocalDateTimeInputValue(max),
-  };
-}
 
 function getEventDateValidationMessage(startValue: string, endValue: string) {
   if (!startValue || !endValue) return "";
@@ -130,7 +115,6 @@ export default function EditEventPage() {
   const [loadingMovies, setLoadingMovies] = useState(false);
   const [movieSearchMessage, setMovieSearchMessage] = useState("");
   const [selectedMovieSummary, setSelectedMovieSummary] = useState("");
-  const dateBounds = getEventDateBounds();
   const dateError = getEventDateValidationMessage(form.start, form.end);
 
   useEffect(() => {
@@ -221,7 +205,7 @@ export default function EditEventPage() {
   }
 
   const valid =
-    form.title.trim().length > 0 &&
+    form.title.trim().length >= 2 &&
     form.description.trim().length >= 10 &&
     form.location.trim().length >= 2 &&
     form.start &&
@@ -342,7 +326,10 @@ export default function EditEventPage() {
                   <label htmlFor="title" className="block text-sm font-medium">
                     Title
                   </label>
-                  <input id="title" className="mt-1 w-full rounded border p-2" value={form.title} onChange={onChange("title")} required />
+                  <input id="title" className="mt-1 w-full rounded border p-2" value={form.title} onChange={onChange("title")} required minLength={2} aria-describedby="title-help" />
+                  <p id="title-help" className="mt-1 text-xs text-gray-700">
+                    Minimum 2 characters. Short titles such as ET are allowed.
+                  </p>
                 </div>
 
                 <div>
@@ -372,38 +359,32 @@ export default function EditEventPage() {
                     <label htmlFor="start" className="block text-sm font-medium">
                       Start
                     </label>
-                    <input
+                    <GbDateTimeInput
                       id="start"
-                      type="datetime-local"
                       className="mt-1 w-full rounded border p-2"
                       value={form.start}
-                      onChange={onChange("start")}
-                      min={dateBounds.min}
-                      max={dateBounds.max}
+                      onValueChange={(value) => setForm((f) => ({ ...f, start: value }))}
                       required
-                      aria-invalid={!!dateError}
-                      aria-describedby={dateError ? "event-date-error" : undefined}
+                      ariaInvalid={!!dateError}
+                      ariaDescribedBy={dateError ? "event-date-error" : undefined}
                     />
-                    <p className="mt-1 text-xs text-gray-700">Preview: {formatDateTimeShort(toIsoFromLocal(form.start))}</p>
+                    <p className="mt-1 text-xs text-gray-700">Preview (dd/mm/yyyy): {formatDateTimeShort(toIsoFromLocal(form.start))}</p>
                   </div>
 
                   <div>
                     <label htmlFor="end" className="block text-sm font-medium">
                       End
                     </label>
-                    <input
+                    <GbDateTimeInput
                       id="end"
-                      type="datetime-local"
                       className="mt-1 w-full rounded border p-2"
                       value={form.end}
-                      onChange={onChange("end")}
-                      min={form.start || dateBounds.min}
-                      max={dateBounds.max}
+                      onValueChange={(value) => setForm((f) => ({ ...f, end: value }))}
                       required
-                      aria-invalid={!!dateError}
-                      aria-describedby={dateError ? "event-date-error" : undefined}
+                      ariaInvalid={!!dateError}
+                      ariaDescribedBy={dateError ? "event-date-error" : undefined}
                     />
-                    <p className="mt-1 text-xs text-gray-700">Preview: {formatDateTimeShort(toIsoFromLocal(form.end))}</p>
+                    <p className="mt-1 text-xs text-gray-700">Preview (dd/mm/yyyy): {formatDateTimeShort(toIsoFromLocal(form.end))}</p>
                   </div>
                 </div>
 

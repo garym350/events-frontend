@@ -10,6 +10,7 @@ import {
   logoutAdmin,
 } from "@/lib/api";
 import { clearAdminSession, getAdminSession } from "@/lib/adminSession";
+import GbDateTimeInput from "@/components/GbDateTimeInput";
 import { formatDateTimeShort } from "@/lib/dates";
 
 type FormState = {
@@ -22,22 +23,6 @@ type FormState = {
 };
 
 const MAX_EVENT_YEARS_AHEAD = 5;
-
-function toLocalDateTimeInputValue(date: Date) {
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function getEventDateBounds() {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  const max = new Date(now);
-  max.setFullYear(max.getFullYear() + MAX_EVENT_YEARS_AHEAD);
-  return {
-    min: toLocalDateTimeInputValue(now),
-    max: toLocalDateTimeInputValue(max),
-  };
-}
 
 function getEventDateValidationMessage(startValue: string, endValue: string) {
   if (!startValue || !endValue) return "";
@@ -193,12 +178,11 @@ export default function Admin() {
   }
   const previewStart = formatDateTimeShort(toIsoFromLocal(form.start));
   const previewEnd = formatDateTimeShort(toIsoFromLocal(form.end));
-  const dateBounds = getEventDateBounds();
   const dateError = getEventDateValidationMessage(form.start, form.end);
 
   // Simple frontend validation
   const valid =
-    form.title.trim().length > 0 &&
+    form.title.trim().length >= 2 &&
     form.description.trim().length >= 10 &&
     form.location.trim().length >= 2 &&
     form.start &&
@@ -260,8 +244,13 @@ export default function Admin() {
               value={form.title}
               onChange={onChange("title")}
               required
+              minLength={2}
               aria-required="true"
+              aria-describedby="title-help"
             />
+            <p id="title-help" className="text-xs text-gray-700">
+              Minimum 2 characters. Short titles such as ET are allowed.
+            </p>
           </div>
 
           <div>
@@ -308,41 +297,35 @@ export default function Admin() {
               <label htmlFor="start" className="block text-sm font-medium">
                 Start
               </label>
-              <input
+              <GbDateTimeInput
                 id="start"
                 name="start"
-                type="datetime-local"
                 className="border p-2 w-full"
                 value={form.start}
-                onChange={onChange("start")}
-                min={dateBounds.min}
-                max={dateBounds.max}
+                onValueChange={(value) => setForm((f) => ({ ...f, start: value }))}
                 required
-                aria-required="true"
-                aria-invalid={!!dateError}
-                aria-describedby={dateError ? "event-date-error" : undefined}
+                ariaRequired={true}
+                ariaInvalid={!!dateError}
+                ariaDescribedBy={dateError ? "event-date-error" : undefined}
               />
-              <p className="text-xs text-gray-700">Preview: {previewStart}</p>
+              <p className="text-xs text-gray-700">Preview (dd/mm/yyyy): {previewStart}</p>
             </div>
             <div>
               <label htmlFor="end" className="block text-sm font-medium">
                 End
               </label>
-              <input
+              <GbDateTimeInput
                 id="end"
                 name="end"
-                type="datetime-local"
                 className="border p-2 w-full"
                 value={form.end}
-                onChange={onChange("end")}
-                min={form.start || dateBounds.min}
-                max={dateBounds.max}
+                onValueChange={(value) => setForm((f) => ({ ...f, end: value }))}
                 required
-                aria-required="true"
-                aria-invalid={!!dateError}
-                aria-describedby={dateError ? "event-date-error" : undefined}
+                ariaRequired={true}
+                ariaInvalid={!!dateError}
+                ariaDescribedBy={dateError ? "event-date-error" : undefined}
               />
-              <p className="text-xs text-gray-700">Preview: {previewEnd}</p>
+              <p className="text-xs text-gray-700">Preview (dd/mm/yyyy): {previewEnd}</p>
             </div>
           </div>
 
